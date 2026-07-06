@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delish Foods — ระบบส่งยอดขายประจำวัน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f0f4f0; --surface:#ffffff; --surface2:#f5f8f5; --surface3:#e8f0e8;
+    --border:#d0dcd0; --border2:#e0e8e0;
+    --green:#1a7a3c; --green-l:#e8f5ee; --green-m:#b8dfc8; --green-dk:#145f2f; --green-btn:#22a050;
+    --yellow:#b07800; --yellow-l:#fff8e0; --yellow-m:#ffe08a;
+    --red:#c0392b; --red-l:#fdecea;
+    --blue:#1a5fa0; --blue-l:#e8f0fa;
+    --orange:#c05000; --orange-l:#fff0e8;
+    --purple:#6a3fa0; --purple-l:#f0e8fa;
+    --text:#1a2a1a; --text2:#3a5a3a; --muted:#6a8a6a; --dim:#9aaa9a;
+    --font:'Sarabun',sans-serif;
+    --r:10px; --r2:6px; --r3:4px;
+    --sh:0 2px 8px rgba(0,60,20,.10); --sh2:0 4px 20px rgba(0,60,20,.14);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:var(--font); font-size:15.5px; line-height:1.6; padding-bottom:84px;}
+  h1,h2,h3{font-family:var(--font); font-weight:800;}
+
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes spinIn{0%{transform:rotate(-180deg) scale(0);opacity:0}60%{transform:rotate(20deg) scale(1.2)}80%{transform:rotate(-10deg) scale(.95)}100%{transform:rotate(0) scale(1);opacity:1}}
+  @keyframes countUp{0%{transform:translateY(20px) scale(.8);opacity:0}70%{transform:translateY(-5px) scale(1.05)}100%{transform:none;opacity:1}}
+  @keyframes popDown{from{transform:translateY(-8px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+  @keyframes tabPop{0%{transform:translateY(-2px) scale(.9)}60%{transform:translateY(-2px) scale(1.06)}100%{transform:translateY(-2px) scale(1)}}
+  @media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important;} }
+
+  .topbar{background:linear-gradient(160deg,#0d2e1a 0%,#1a4a2e 45%,#2d6b42 100%); color:#fff; padding:18px 24px 22px; position:relative; overflow:hidden;}
+  .topbar::after{content:""; position:absolute; left:0; right:0; bottom:0; height:4px; background:linear-gradient(90deg,var(--green-btn),var(--yellow-m));}
+  .brand-row{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .brand{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+  .brand .logo{font-weight:800; font-size:20px;} .brand .sub{font-size:12.5px; opacity:.75;}
+  .nav-link{background:none; border:1.5px solid rgba(255,255,255,.4); color:#fff; padding:7px 14px; border-radius:20px; font-size:12.5px; cursor:pointer; font-family:var(--font); font-weight:600; transition:all .15s;}
+  .nav-link:hover{background:rgba(255,255,255,.15); transform:translateY(-1px);}
+  .eyebrow{font-size:11px; text-transform:uppercase; letter-spacing:1.4px; opacity:.7; margin:14px 0 2px; font-weight:600;}
+  .ticker-row{display:flex; align-items:flex-end; gap:26px; flex-wrap:wrap; margin-top:2px;}
+  .ticker-num{font-size:34px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .ticker-sub{font-size:12px; opacity:.75;} .ticker-mini{font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}
+
+  .refbar{background:var(--surface); border-bottom:2px solid var(--green-m); padding:12px 24px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; font-size:13.5px; position:sticky; top:0; z-index:20; box-shadow:var(--sh);}
+  .refbar b{color:var(--green-dk);}
+  .refbar .edit-link{margin-left:auto; background:var(--surface2); border:1.5px solid var(--border); color:var(--green-dk); padding:6px 14px; border-radius:20px; font-size:12.5px; cursor:pointer; font-family:var(--font); font-weight:600; transition:all .15s;}
+  .refbar .edit-link:hover{background:var(--green-l); border-color:var(--green-m); transform:translateY(-1px);}
+
+  .stepnav{display:flex; gap:0; max-width:1240px; margin:0 auto; padding:14px 18px 0; flex-wrap:wrap;}
+  .stepnav .sn-item{flex:1; min-width:130px; text-align:center; padding:10px 6px; font-size:12.5px; border-bottom:3px solid var(--border); color:var(--dim); cursor:pointer; font-weight:700; transition:all .15s;}
+  .stepnav .sn-item:hover{color:var(--text2);}
+  .stepnav .sn-item.active{color:var(--green-dk); border-bottom-color:var(--green-btn);}
+  .stepnav .sn-item.done{color:var(--green);}
+
+  .wrap{max-width:1240px; margin:0 auto; padding:22px 18px 0;}
+
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:22px 24px; margin-bottom:20px; box-shadow:var(--sh); animation:cardIn .35s ease both;}
+  .card h2{font-size:16px; margin:0 0 16px; padding-bottom:12px; border-bottom:2px solid var(--green-m); color:var(--green-dk); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  .field-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  @media (max-width:680px){.field-grid{grid-template-columns:1fr;}}
+  label{display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px; font-weight:600;}
+  input[type=text],input[type=date],input[type=number],textarea,select{
+    width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:var(--r2); font-family:var(--font); font-size:14.5px; background:var(--surface2); color:var(--text); transition:all .15s;
+  }
+  input:disabled{background:var(--surface3); color:var(--muted);}
+  input:focus,textarea:focus{outline:none; border-color:var(--green-btn); background:#fff; box-shadow:0 0 0 3px rgba(34,160,80,.15);}
+  textarea{min-height:84px; resize:vertical; font-size:12.5px;}
+  details.config summary{cursor:pointer; font-size:13px; color:var(--green); font-weight:600;}
+  .hint{font-size:12.5px; color:var(--muted); margin-top:7px;}
+  .btn{border:none; border-radius:var(--r2); padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:var(--font); white-space:nowrap; transition:all .18s;}
+  .btn-primary{background:linear-gradient(135deg,var(--green-btn),var(--green-dk)); color:#fff; box-shadow:0 3px 10px rgba(34,160,80,.35);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 6px 16px rgba(34,160,80,.45);}
+  .btn-primary:disabled:hover{transform:none;}
+  .btn-ghost{background:var(--surface2); color:var(--green-dk); border:1.5px solid var(--border);}
+  .btn-ghost:hover{background:var(--green-l); border-color:var(--green-m); transform:translateY(-1px);}
+  .btn-sm{padding:6px 13px; font-size:12.5px;}
+  .btn-danger-text{background:none; color:var(--red); padding:4px 6px; font-size:12.5px; border:none; cursor:pointer; font-family:var(--font); font-weight:600; transition:all .12s;}
+  .btn-danger-text:hover{background:var(--red-l); border-radius:5px;}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+
+  .detective-banner{padding:11px 16px; border-radius:20px; font-size:13px; margin-bottom:16px; display:flex; align-items:center; gap:8px; font-weight:600; animation:popDown .3s ease both;}
+  .detective-ok{background:var(--green-l); color:var(--green-dk); border:1.5px solid var(--green-m);}
+  .detective-warn{background:var(--yellow-l); color:var(--yellow); border:1.5px solid var(--yellow-m);}
+
+  .tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+  .tab-btn{padding:9px 18px; border-radius:var(--r); border:2px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; font-size:13.5px; font-family:var(--font); font-weight:700; transition:all .22s cubic-bezier(.34,1.56,.64,1); position:relative;}
+  .tab-btn:hover{transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.10);}
+  .tab-btn .chk{margin-left:6px;}
+  .tab-btn .tab-code{margin-left:7px; font-size:10.5px; opacity:.75; font-weight:500; padding:1px 6px; border-radius:8px; background:rgba(0,0,0,.08);}
+  .tab-btn .tab-code-locked{opacity:.9; font-weight:700;}
+  .tab-btn .tab-x{margin-left:8px; opacity:.7; font-size:11px; padding:1px 3px; border-radius:50%;}
+  .tab-btn .tab-x:hover{opacity:1; background:rgba(0,0,0,.15);}
+  .tab-add{border-style:dashed; color:var(--dim); background:none;}
+  .tab-btn.sel-garb{background:linear-gradient(135deg,#22a050,#145f2f); color:#fff; border-color:#22a050; box-shadow:0 4px 16px rgba(34,160,80,.4); transform:translateY(-2px);}
+  .tab-btn.sel-lineman{background:linear-gradient(135deg,#FFD600,#e6a800); color:#5a3c00; border-color:#e6c000; box-shadow:0 4px 16px rgba(255,214,0,.45); transform:translateY(-2px);}
+  .tab-btn.sel-cash{background:linear-gradient(135deg,#2563eb,#1a4fa8); color:#fff; border-color:#3b82f6; box-shadow:0 4px 16px rgba(37,99,235,.4); transform:translateY(-2px);}
+  .tab-btn.sel-lineshopping{background:linear-gradient(135deg,#8b5cf6,#5b21b6); color:#fff; border-color:#8b5cf6; box-shadow:0 4px 16px rgba(139,92,246,.4); transform:translateY(-2px);}
+  .tab-btn.sel-extra1{background:linear-gradient(135deg,#f97316,#c05000); color:#fff; border-color:#f97316; box-shadow:0 4px 16px rgba(249,115,22,.4); transform:translateY(-2px);}
+  .tab-btn.sel-extra2{background:linear-gradient(135deg,#0d9488,#0a5c53); color:#fff; border-color:#0d9488; box-shadow:0 4px 16px rgba(13,148,136,.4); transform:translateY(-2px);}
+  .tab-btn.sel-extra3{background:linear-gradient(135deg,#64748b,#3f4a5a); color:#fff; border-color:#64748b; box-shadow:0 4px 16px rgba(100,116,139,.4); transform:translateY(-2px);}
+  .tab-btn.sel-extra4{background:linear-gradient(135deg,#e11d48,#9f1239); color:#fff; border-color:#e11d48; box-shadow:0 4px 16px rgba(225,29,72,.4); transform:translateY(-2px);}
+  .tab-btn.sel-extra5{background:linear-gradient(135deg,#0891b2,#0e5a68); color:#fff; border-color:#0891b2; box-shadow:0 4px 16px rgba(8,145,178,.4); transform:translateY(-2px);}
+  .tab-btn.sel-extra6{background:linear-gradient(135deg,#65a30d,#3f6212); color:#fff; border-color:#65a30d; box-shadow:0 4px 16px rgba(101,163,13,.4); transform:translateY(-2px);}
+  .tab-btn.tab-pop{animation:tabPop .3s cubic-bezier(.34,1.56,.64,1);}
+  .tab-btn.unfilled-hint{color:var(--dim);}
+  .txt-garb{color:#145f2f;} .txt-lineman{color:#8a6800;} .txt-cash{color:#1a4fa8;} .txt-lineshopping{color:#5b21b6;}
+  .txt-extra1{color:#c05000;} .txt-extra2{color:#0a5c53;} .txt-extra3{color:#3f4a5a;}
+  .txt-extra4{color:#9f1239;} .txt-extra5{color:#0e5a68;} .txt-extra6{color:#3f6212;}
+
+  .paste-row{display:flex; gap:10px; align-items:flex-start; margin-bottom:8px;}
+  .paste-row textarea{flex:1;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  thead th{text-align:left; background:var(--green-l); color:var(--green-dk); padding:10px 8px; font-family:var(--font); font-weight:700; font-size:12px; border-bottom:2px solid var(--green-m);}
+  tbody td{padding:9px 8px; border-bottom:1px solid var(--border2);}
+  tbody tr{animation:fadeIn .2s ease both;}
+  tbody tr:nth-child(even){background:var(--surface2);}
+  tbody tr.warn-date{background:var(--yellow-l);} tbody tr.warn-dup{background:var(--red-l);}
+  .flag{font-size:11px; padding:1px 7px; border-radius:10px; margin-left:6px; font-weight:700;}
+  .flag-date{background:var(--yellow); color:#fff;} .flag-dup{background:var(--red); color:#fff;}
+  .num{text-align:right;} .mono-num{font-variant-numeric:tabular-nums; font-weight:600;}
+  tfoot td{padding:10px 8px; font-weight:800; border-top:2px solid var(--green-dk);}
+  .empty-row{padding:26px 8px; text-align:center; color:var(--dim);}
+
+  .summary-table th:not(:first-child),.summary-table td:not(:first-child){text-align:right;}
+  .summary-table tr.total-row td{font-weight:800; background:var(--green-l);}
+
+  .exc-row{display:grid; grid-template-columns:160px 1fr auto; gap:9px; margin-bottom:9px; animation:fadeIn .2s ease both;}
+  .tax-row{display:grid; grid-template-columns:36px 130px 130px 110px 1fr 100px auto; gap:9px; margin-bottom:9px; font-size:13px; align-items:start; animation:fadeIn .2s ease both;}
+  .tax-head{display:grid; grid-template-columns:36px 130px 130px 110px 1fr 100px auto; gap:9px; font-size:11.5px; color:var(--muted); margin-bottom:7px; padding:0 2px; font-weight:600;}
+  @media (max-width:640px){ .exc-row,.tax-row{grid-template-columns:1fr;} .tax-head{display:none;} }
+  .exc-empty,.tax-empty{color:var(--dim); font-size:13px; padding:9px 0;}
+
+  .step-actions{display:flex; justify-content:space-between; gap:10px; margin:20px 0 60px; flex-wrap:wrap;}
+  .status-msg{font-size:13px; flex:1; min-width:180px; font-weight:600;}
+  .status-msg.ok{color:var(--green-dk);} .status-msg.err{color:var(--red);}
+
+  .review-row{cursor:pointer; transition:background .15s;} .review-row:hover{background:var(--green-l) !important;}
+  .review-detail{display:none;} .review-detail.open{display:table-row; animation:fadeIn .2s ease both;}
+
+  .done-box{text-align:center; padding:56px 20px;}
+  .done-mark{font-size:64px; display:inline-block; animation:spinIn .7s cubic-bezier(.34,1.56,.64,1) both; filter:drop-shadow(0 6px 16px rgba(34,160,80,.4));}
+  .done-title{font-size:13px; font-weight:700; color:var(--muted); letter-spacing:2px; text-transform:uppercase; animation:fadeIn .4s ease .45s both; margin-top:14px;}
+  .done-desc{color:var(--muted); font-size:13.5px; animation:slideUp .4s ease .5s both; margin-top:6px;}
+  .done-amount{font-size:36px; font-weight:800; color:var(--green-dk); margin:10px 0; animation:countUp .5s cubic-bezier(.34,1.56,.64,1) .55s both; font-variant-numeric:tabular-nums;}
+  .done-actions{animation:slideUp .4s ease .7s both; margin-top:18px;}
+  .done-sheetlink{animation:fadeIn .4s ease .85s both; margin-top:14px;}
+
+  .hist-filter{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px;}
+  .hist-filter > div{flex:1; min-width:140px;}
+  .hist-card{border:1px solid var(--border); border-radius:8px; padding:13px 15px; margin-bottom:10px; animation:cardIn .18s ease both; transition:box-shadow .15s;}
+  .hist-card-warn{border-color:var(--yellow-m); background:var(--yellow-l);}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(13,46,26,.55); display:none; align-items:flex-start; justify-content:center; z-index:100; padding:30px 16px; overflow-y:auto;}
+  .modal-overlay.show{display:flex;}
+  .modal-box{background:var(--surface); border-radius:16px; max-width:760px; width:100%; padding:30px 30px 26px; box-shadow:0 20px 60px rgba(0,30,10,.35); animation:slideUp .35s cubic-bezier(.2,.8,.3,1) both; margin:auto;}
+  .modal-eyebrow{font-size:11.5px; text-transform:uppercase; letter-spacing:1.6px; color:var(--green); font-weight:700; text-align:center;}
+  .modal-title{font-size:20px; color:var(--green-dk); text-align:center; margin:6px 0 20px;}
+  .modal-hero{text-align:center; padding:18px; background:var(--green-l); border-radius:var(--r); margin-bottom:16px;}
+  .modal-hero-num{font-size:44px; font-weight:800; color:var(--green-dk); font-variant-numeric:tabular-nums; animation:countUp .5s cubic-bezier(.34,1.56,.64,1) both;}
+  .modal-hero-sub{font-size:13px; color:var(--muted); font-weight:600; margin-top:2px;}
+  .modal-footer{display:flex; justify-content:flex-end; gap:10px; margin-top:20px; flex-wrap:wrap;}
+  .hist-card:hover{box-shadow:var(--sh);}
+  .hist-card summary{cursor:pointer; font-size:14px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand-row">
+    <div class="brand"><span class="logo">Delish Foods</span><span class="sub">Daily Sales Submission · ระบบส่งยอดขายประจำวัน</span></div>
+    <button class="nav-link" id="btnToggleHistory">ดูประวัติการส่งย้อนหลัง</button>
+  </div>
+  <div class="eyebrow">ยอดขายสุทธิรวม (รายการที่กำลังกรอก)</div>
+  <div class="ticker-row">
+    <div><div class="ticker-num" id="tickerTotal">0.00</div><div class="ticker-sub">บาท</div></div>
+    <div><div class="ticker-mini" id="tickerDocs">0</div><div class="ticker-sub">เอกสารทั้งหมด</div></div>
+    <div><div class="ticker-mini" id="tickerFlags">0</div><div class="ticker-sub">รายการที่ต้องตรวจสอบ</div></div>
+  </div>
+</div>
+
+<div class="refbar" id="refBar" style="display:none;">
+  <div>สาขา <b id="refBranch">-</b></div>
+  <div>วันที่ <b id="refDate">-</b></div>
+  <div>ผู้จัดทำ <b id="refPreparer">-</b></div>
+  <button class="edit-link" id="btnEditGeneral">แก้ไขข้อมูลทั่วไป</button>
+</div>
+
+<div class="stepnav" id="stepNav" style="display:none;"></div>
+
+<!-- ===== STEP: GENERAL ===== -->
+<div class="wrap step" id="stepGeneral">
+  <div class="card">
+    <h2>ข้อมูลทั่วไป</h2>
+    <div class="field-grid">
+      <div><label for="fBranch">สาขา</label>
+        <select id="fBranch">
+          <option value="">-- เลือกสาขา --</option>
+          <option value="รามคำแหง">รามคำแหง</option>
+          <option value="อ่อนนุช">อ่อนนุช</option>
+          <option value="พระราม 4">พระราม 4</option>
+        </select>
+      </div>
+      <div><label for="fDate">วันที่ขาย</label><input type="date" id="fDate"><div class="hint" id="fDatePreview" style="margin-top:5px; font-weight:600; color:var(--green-dk);"></div></div>
+      <div><label for="fPreparer">ผู้จัดทำ (PC)</label><input type="text" id="fPreparer" placeholder="ชื่อ-สกุล"></div>
+    </div>
+    <div class="err-text" id="generalErr" style="color:var(--red); font-size:13px; margin-top:8px; font-weight:600;"></div>
+    <div style="margin-top:14px;"><button class="btn btn-primary" id="btnConfirmGeneral">ยืนยันและเริ่มกรอกข้อมูล →</button></div>
+    <details class="config" style="margin-top:18px;" open>
+      <summary>⚙ การเชื่อมต่อ Google Sheet</summary>
+      <div class="hint" style="margin-top:8px;">เชื่อมต่อไว้แล้วกับ Google Sheet ของบริษัท — <a id="sheetLink" href="#" target="_blank" rel="noopener" style="color:var(--green-dk); font-weight:700;">เปิด Google Sheet ปลายทาง ↗</a></div>
+    </details>
+  </div>
+</div>
+
+<!-- ===== STEP: DOCUMENTS ===== -->
+<div class="wrap step" id="stepDocuments" style="display:none;">
+  <div class="card">
+    <h2>ข้อมูลรายเอกสาร (วางจาก SAP)
+      <button class="btn btn-ghost btn-sm" id="btnClearChannel">ล้างข้อมูลแท็บนี้</button>
+    </h2>
+    <div class="detective-banner" id="detectiveBanner"></div>
+    <div class="tabs" id="tabBar"></div>
+    <div class="paste-row">
+      <textarea id="pasteArea" placeholder="คลิกในช่องนี้แล้ว Ctrl+V วางข้อมูลจาก SAP ได้เลย (ระบบเพิ่มข้อมูลให้อัตโนมัติทันทีที่วาง ไม่ต้องกดปุ่ม)"></textarea>
+      <button class="btn btn-primary" id="btnAddPaste">+ เพิ่มข้อมูล</button>
+    </div>
+    <div class="hint" id="pasteHint" style="display:none;"></div>
+    <div style="overflow-x:auto;">
+      <table id="channelTable">
+        <thead><tr><th>Internal No.</th><th>IV No.</th><th>SO No.</th><th>Posting Date</th><th>รหัสลูกค้า</th><th>ชื่อลูกค้า</th><th class="num">Document Total</th><th>Status</th><th>Canceled</th><th></th></tr></thead>
+        <tbody id="channelBody"></tbody>
+        <tfoot id="channelFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="step-actions"><span></span><button class="btn btn-primary" id="toExceptions">ถัดไป: รายการผิดปกติ →</button></div>
+</div>
+
+
+<!-- ===== STEP: EXCEPTIONS ===== -->
+<div class="wrap step" id="stepExceptions" style="display:none;">
+  <div class="card">
+    <h2>ส่วนที่ 2 : รายการผิดปกติ (Exceptions)
+      <button class="btn btn-ghost btn-sm" id="btnAddExc">+ เพิ่มรายการ</button>
+    </h2>
+    <div id="excList"></div>
+    <div class="hint">ถ้าไม่มีรายการผิดปกติ ปล่อยว่างไว้ได้เลย ระบบจะบันทึกเป็น "ไม่มี" ให้อัตโนมัติ</div>
+  </div>
+  <div class="step-actions"><button class="btn btn-ghost" id="excBack">← ย้อนกลับ</button><button class="btn btn-primary" id="excNext">ถัดไป: ใบกำกับภาษีย้อนหลัง →</button></div>
+</div>
+
+<!-- ===== STEP: TAX ===== -->
+<div class="wrap step" id="stepTax" style="display:none;">
+  <div class="card">
+    <h2>ส่วนที่ 3 : ทะเบียนออกใบกำกับภาษีย้อนหลัง (Late Tax Invoice Register)
+      <button class="btn btn-ghost btn-sm" id="btnAddTax">+ เพิ่มรายการ</button>
+    </h2>
+    <div class="tax-head" id="taxHead" style="display:none;"><div>ลำดับ</div><div>วันที่ขาย</div><div>วันที่ออกใบกำกับ</div><div>เลขที่ IV</div><div>ชื่อบริษัทลูกค้า</div><div>ยอด</div><div></div></div>
+    <div id="taxList"></div>
+    <div class="hint">ถ้าไม่มีรายการ ปล่อยว่างไว้ได้เลย ระบบจะบันทึกเป็น "ไม่มี" ให้อัตโนมัติ</div>
+  </div>
+  <div class="step-actions"><button class="btn btn-ghost" id="taxBack">← ย้อนกลับ</button><button class="btn btn-primary" id="taxNext">ตรวจสอบและส่งข้อมูล →</button></div>
+</div>
+
+<!-- ===== STEP: DONE ===== -->
+<div class="wrap step" id="stepDone" style="display:none;">
+  <div class="card done-box">
+    <div class="done-mark">✅</div>
+    <div class="done-title">ส่งข้อมูลสำเร็จ</div>
+    <div class="done-desc" id="doneMeta"></div>
+    <div class="done-amount" id="doneAmount">0.00 บาท</div>
+    <div class="done-actions"><button class="btn btn-primary" id="btnStartOver">เริ่มรายการใหม่</button></div>
+    <div class="done-sheetlink"><a id="sheetLinkDone" href="#" target="_blank" rel="noopener" style="color:var(--green-dk); font-weight:700; font-size:13px;">เปิด Google Sheet เพื่อตรวจสอบ ↗</a></div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM MODAL: shown before final submit ===== -->
+<div class="modal-overlay" id="reviewModalOverlay">
+  <div class="modal-box">
+    <div class="modal-eyebrow">ก่อนส่งข้อมูลเข้า Google Sheet</div>
+    <h2 class="modal-title">ตรวจสอบยอดขายให้ครบก่อนส่ง</h2>
+    <div class="modal-hero">
+      <div class="modal-hero-num" id="reviewHeroTotal">0.00</div>
+      <div class="modal-hero-sub">บาท · <span id="reviewHeroDocs">0</span> เอกสาร</div>
+    </div>
+    <div class="detective-banner" id="reviewFlagBanner" style="display:none;"></div>
+    <table class="summary-table">
+      <thead><tr><th>ช่องทาง (คลิกดูรายละเอียด)</th><th>SO</th><th>AR</th><th>ยอดขายสุทธิ (บาท)</th></tr></thead>
+      <tbody id="reviewBody"></tbody>
+      <tfoot><tr class="total-row"><td>รวม</td><td id="reviewSumSO">0</td><td id="reviewSumAR">0</td><td id="reviewSumTotal">0.00</td></tr></tfoot>
+    </table>
+    <div style="margin-top:18px; display:flex; flex-direction:column; gap:10px;" id="reviewExtras"></div>
+    <div class="status-msg" id="statusMsg" style="margin-top:16px;">ยังไม่ได้ส่งข้อมูล</div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btnCopyJson">คัดลอกข้อมูล (JSON)</button>
+      <button class="btn btn-ghost" id="reviewBack">← ย้อนกลับไปแก้ไข</button>
+      <button class="btn btn-primary" id="btnFinalSubmit">ยืนยันและส่งข้อมูลเข้า Google Sheet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW: HISTORY ===== -->
+<div class="wrap" id="viewHistory" style="display:none;">
+  <div class="card">
+    <h2>ประวัติการส่งข้อมูล</h2>
+    <div class="hist-filter">
+      <div><label>สาขา (เว้นว่าง = ทุกสาขา)</label><input type="text" id="hBranch" placeholder="เช่น รามคำแหง"></div>
+      <div><label>ตั้งแต่วันที่</label><input type="date" id="hFrom"></div>
+      <div><label>ถึงวันที่</label><input type="date" id="hTo"></div>
+      <div><button class="btn btn-primary" id="btnHistSearch">ค้นหา</button></div>
+    </div>
+    <div id="histResults"></div>
+  </div>
+</div>
+
+<script>
+const CORE_CHANNELS = ['Garb','Lineman','Cash','Lineshopping'];
+const CORE_CLASS = { Garb:'garb', Lineman:'lineman', Cash:'cash', Lineshopping:'lineshopping' };
+const EXTRA_CLASS_CYCLE = ['extra1','extra2','extra3','extra4','extra5','extra6'];
+const STEP_LABELS = { documents:'ข้อมูลรายเอกสาร', exceptions:'รายการผิดปกติ', tax:'ใบกำกับภาษีย้อนหลัง' };
+const DEFAULT_WEBHOOK = 'https://script.google.com/macros/s/AKfycbzkBJOkwzdUk-I_Dh3KUTd_HoesaX20cCQta7GvARn-TGctLzynyQbUPQCUetqNDsqY7w/exec';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1fMzjSUKoju2B7c8anf-0xUKHFKMpIrG88BgLDRJbICw/edit?gid=1988813066#gid=1988813066';
+
+// All sales data lives only in memory — nothing here is written to persistent
+// storage, so a refresh / close-and-reopen always starts completely blank.
+let state = {
+  branch:'', date:'', preparer:'', generalConfirmed:false,
+  webhook: DEFAULT_WEBHOOK,
+  channels:{ Garb:[], Lineman:[], Cash:[], Lineshopping:[] },
+  extraChannels:[],
+  exceptions:[],
+  taxInvoices:[]
+};
+let currentStep = 'general';
+let activeChannel = 'Garb';
+let submitted = false;
+
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function formatThaiDate(iso){
+  if(!iso) return '-';
+  const parts = String(iso).split('-');
+  if(parts.length!==3) return iso;
+  const [y,m,d] = parts.map(Number);
+  if(!y||!m||!d||m<1||m>12) return iso;
+  return `${d} ${THAI_MONTHS[m-1]} ${y}`;
+}
+function fmt(n){ return (Number(n)||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+window.addEventListener('beforeunload', (e)=>{
+  if(currentStep!=='general' && currentStep!=='done' && !submitted){ e.preventDefault(); e.returnValue=''; }
+});
+
+// ---------- parsing ----------
+function parsePaste(text){
+  const rows=[];
+  for(const line of text.split(/\r?\n/)){
+    if(!line.trim()) continue;
+    const cols = line.split('\t').map(c=>c.trim());
+    const idClean = (cols[0]||'').replace(/,/g,'');
+    if(!/^[0-9]+$/.test(idClean) || cols.length<6) continue;
+    rows.push({ internal:cols[0]||'', iv:cols[1]||'', so:cols[2]||'', dateRaw:cols[3]||'',
+      custCode:cols[4]||'', custName:cols[5]||'', total:parseFloat((cols[6]||'0').replace(/,/g,''))||0,
+      status:cols[7]||'', canceled:cols[8]||'' });
+  }
+  return rows;
+}
+/**
+ * Returns every plausible ISO date this string could mean. A date like
+ * "06/07/26" is genuinely ambiguous (could be 6-Jul or 7-Jun) — rather than
+ * guessing one fixed order (which caused false "date mismatch" alerts when
+ * the guess was wrong even though the real calendar date matched), we
+ * return every reading that's calendar-valid and let the caller check it
+ * against the known sale date instead of trusting a single assumed order.
+ */
+function parseThaiDateCandidates(str){
+  const m = String(str||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(!m) return [];
+  let a = Number(m[1]), b = Number(m[2]), y = m[3];
+  y = y.length===2 ? '20'+y : y;
+  const fmt = (d,mo)=> `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const out = new Set();
+  if(a>=1 && a<=31 && b>=1 && b<=12) out.add(fmt(a,b)); // reading as D/M/Y
+  if(b>=1 && b<=31 && a>=1 && a<=12) out.add(fmt(b,a)); // reading as M/D/Y
+  return [...out];
+}
+/** True if dateRaw could plausibly BE saleDate under either D/M/Y or M/D/Y reading. */
+function dateMatchesSale(dateRaw, saleDate){
+  if(!saleDate) return true; // nothing to compare against
+  const candidates = parseThaiDateCandidates(dateRaw);
+  if(candidates.length===0) return true; // unparseable — don't false-flag on garbage/unexpected formats
+  return candidates.includes(saleDate);
+}
+
+// ---------- channel helpers ----------
+function allTabIds(){ return CORE_CHANNELS.concat(state.extraChannels.map(c=>c.id)); }
+function getMeta(id){
+  if(CORE_CHANNELS.includes(id)) return { id, name:id, cls:CORE_CLASS[id], rows:state.channels[id] };
+  const ec = state.extraChannels.find(c=>c.id===id);
+  return ec ? { id, name:ec.name, cls:ec.cls, rows:ec.rows } : null;
+}
+function allInternalIds(){
+  const ids={};
+  allTabIds().forEach(id=> getMeta(id).rows.forEach(r=>{ ids[r.internal]=(ids[r.internal]||0)+1; }));
+  return ids;
+}
+function channelTotals(rows){ const amount = rows.reduce((s,r)=>s+r.total,0); return {so:rows.length, ar:rows.length, amount}; }
+
+// ---------- step navigation ----------
+function goStep(step){
+  currentStep = step;
+  document.querySelectorAll('.step').forEach(el=> el.style.display='none');
+  document.getElementById('viewHistory').style.display='none';
+  document.getElementById('stepDocuments').style.display = step==='documents' ? 'block':'none';
+  document.getElementById('stepExceptions').style.display = step==='exceptions' ? 'block':'none';
+  document.getElementById('stepTax').style.display = step==='tax' ? 'block':'none';
+  document.getElementById('stepDone').style.display = step==='done' ? 'block':'none';
+  document.getElementById('stepGeneral').style.display = step==='general' ? 'block':'none';
+
+  const showChrome = step!=='general';
+  document.getElementById('refBar').style.display = showChrome ? 'flex':'none';
+  document.getElementById('stepNav').style.display = (showChrome && step!=='done') ? 'flex':'none';
+
+  if(showChrome){
+    document.getElementById('refBranch').textContent = state.branch;
+    document.getElementById('refDate').textContent = formatThaiDate(state.date);
+    document.getElementById('refPreparer').textContent = state.preparer;
+  }
+  renderStepNav();
+  if(step==='documents') renderDocumentsStep();
+  if(step==='exceptions') renderExceptions();
+  if(step==='tax') renderTax();
+  document.querySelectorAll('.step[style*="display: block"] .card').forEach(c=>{ c.style.animation='none'; void c.offsetWidth; c.style.animation=''; });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function renderStepNav(){
+  const bar = document.getElementById('stepNav');
+  const subSteps = ['documents','exceptions','tax'];
+  bar.innerHTML = subSteps.map(s=>{
+    const idx = subSteps.indexOf(s), curIdx = subSteps.indexOf(currentStep);
+    const cls = s===currentStep ? 'active' : (idx<curIdx ? 'done':'');
+    return `<div class="sn-item ${cls}" data-step="${s}">${STEP_LABELS[s]}</div>`;
+  }).join('');
+  bar.querySelectorAll('.sn-item').forEach(el=> el.onclick = ()=> goStep(el.dataset.step));
+}
+function openReviewModal(){
+  renderReview();
+  flashStatus('ยังไม่ได้ส่งข้อมูล','');
+  document.getElementById('reviewModalOverlay').classList.add('show');
+}
+function closeReviewModal(){
+  document.getElementById('reviewModalOverlay').classList.remove('show');
+}
+
+// ---------- general step ----------
+// Fixed customer-code rules (given by the business, not learned/guessed):
+//  - Garb and Lineman have a specific code per branch.
+//  - Lineshopping uses the same code everywhere, regardless of branch.
+//  - Cash has NO fixed code — every transaction can carry a different personal
+//    BC code (1 person = 1 code), so Cash is intentionally excluded from the
+//    "must match a required code" check.
+const LOCKED_CODES_BY_BRANCH = {
+  'รามคำแหง': { Garb:'BC00001', Lineman:'BC00007' },
+  'อ่อนนุช':   { Garb:'BC04695', Lineman:'BC04696' },
+  'พระราม 4': { Garb:'BC00002', Lineman:'BC00008' }
+};
+const LOCKED_CODE_LINESHOPPING = 'BC04730';
+function getLockedCode(channelId, branch){
+  if(channelId==='Lineshopping') return LOCKED_CODE_LINESHOPPING;
+  if(channelId==='Cash') return null;
+  const b = LOCKED_CODES_BY_BRANCH[branch];
+  return (b && b[channelId]) || null; // extra/custom channels always return null (no fixed rule)
+}
+function identifyOwnerChannel(code, branch, excludeId){
+  if(!code) return null;
+  if(excludeId!=='Lineshopping' && code===LOCKED_CODE_LINESHOPPING) return 'Lineshopping';
+  const b = LOCKED_CODES_BY_BRANCH[branch];
+  if(b){
+    if(excludeId!=='Garb' && b.Garb===code) return 'Garb';
+    if(excludeId!=='Lineman' && b.Lineman===code) return 'Lineman';
+  }
+  return null;
+}
+document.getElementById('btnConfirmGeneral').onclick = ()=>{
+  const errEl = document.getElementById('generalErr');
+  state.branch = document.getElementById('fBranch').value.trim();
+  state.date = document.getElementById('fDate').value;
+  state.preparer = document.getElementById('fPreparer').value.trim();
+  if(!state.branch || !state.date || !state.preparer){
+    errEl.textContent = 'กรุณาเลือกสาขา ระบุวันที่ และผู้จัดทำให้ครบก่อน';
+    return;
+  }
+  errEl.textContent = '';
+  state.generalConfirmed = true;
+  goStep('documents');
+};
+document.getElementById('btnEditGeneral').onclick = ()=> goStep('general');
+
+// ---------- documents step ----------
+function dominantCustCode(rows){
+  if(!rows.length) return null;
+  const counts = {};
+  rows.forEach(r=>{ if(r.custCode) counts[r.custCode] = (counts[r.custCode]||0)+1; });
+  const codes = Object.keys(counts);
+  if(codes.length===0) return null;
+  return codes.reduce((a,b)=> counts[a]>=counts[b]?a:b);
+}
+function codeUsedInOtherTab(code, excludeId){
+  for(const id of allTabIds()){
+    if(id===excludeId) continue;
+    const m = getMeta(id);
+    if(m.rows.some(r=>r.custCode===code)) return m.name;
+  }
+  return null;
+}
+function renderTabs(){
+  const bar = document.getElementById('tabBar');
+  const ids = allTabIds();
+  bar.innerHTML = ids.map(id=>{
+    const m = getMeta(id);
+    const active = id===activeChannel;
+    const check = m.rows.length>0 ? `<span class="chk">✓</span>` : '';
+    const locked = getLockedCode(id, state.branch);
+    const sessionCode = dominantCustCode(m.rows);
+    let codeBadge = '';
+    if(locked) codeBadge = `<span class="tab-code tab-code-locked" title="รหัสลูกค้าที่กำหนดตายตัวสำหรับช่องทางนี้">🔒 ${esc(locked)}</span>`;
+    else if(sessionCode) codeBadge = `<span class="tab-code" title="รหัสลูกค้าที่พบในข้อมูลที่วางไว้">${esc(sessionCode)}</span>`;
+    const isExtra = !CORE_CHANNELS.includes(id);
+    const closeBtn = isExtra ? `<span class="tab-x" data-close="${id}" title="ลบช่องทางนี้">✕</span>` : '';
+    return `<button class="tab-btn ${active?'sel-'+m.cls:''}" data-id="${id}" ${isExtra?'data-extra="1"':''}>${esc(m.name)}${check}${codeBadge}${closeBtn}</button>`;
+  }).join('') + `<button class="tab-btn tab-add" id="tabAddBtn">+ ช่องทางใหม่</button>`;
+  const activeBtn = bar.querySelector('.tab-btn[data-id="'+activeChannel+'"]');
+  if(activeBtn){ activeBtn.classList.add('tab-pop'); }
+  bar.querySelectorAll('.tab-btn[data-id]').forEach(b=>{
+    b.onclick = (e)=>{
+      if(e.target.closest('[data-close]')) return; // handled separately
+      activeChannel=b.dataset.id; document.getElementById('pasteHint').style.display='none'; renderDocumentsStep();
+    };
+    if(b.dataset.extra){
+      b.ondblclick = ()=> renameExtraChannel(b.dataset.id);
+    }
+  });
+  bar.querySelectorAll('[data-close]').forEach(x=> x.onclick = (e)=>{ e.stopPropagation(); removeExtraChannel(x.dataset.close); });
+  const addBtn = document.getElementById('tabAddBtn'); if(addBtn) addBtn.onclick = addExtraChannel;
+}
+function renderDetective(){
+  const banner = document.getElementById('detectiveBanner');
+  const selDate = state.date;
+  let mismatches = [];
+  allTabIds().forEach(id=>{
+    const m = getMeta(id);
+    m.rows.forEach(r=>{
+      if(!dateMatchesSale(r.dateRaw, selDate)) mismatches.push(esc(m.name)+' #'+esc(r.internal));
+    });
+  });
+  if(mismatches.length===0){
+    banner.className='detective-banner detective-ok';
+    banner.textContent = '🔎 ตรวจสอบวันที่แล้ว: เอกสารทุกรายการตรงกับวันที่ขาย ('+ (selDate||'-') +')';
+  } else {
+    banner.className='detective-banner detective-warn';
+    banner.innerHTML = '🔎 พบ '+mismatches.length+' เอกสารที่วันที่ไม่ตรงกับวันที่ขายที่ตั้งไว้: '+mismatches.slice(0,6).join(', ')+(mismatches.length>6?' ...':'');
+  }
+  return mismatches.length;
+}
+function renderChannelTable(){
+  const body=document.getElementById('channelBody'), foot=document.getElementById('channelFoot');
+  const m = getMeta(activeChannel) || getMeta('Garb');
+  const rows = m.rows;
+  const dupIds = allInternalIds(); const selDate = state.date;
+  if(rows.length===0){
+    body.innerHTML = `<tr><td colspan="10" class="empty-row">ยังไม่มีข้อมูลในแท็บนี้ — วางข้อมูลจาก SAP ด้านบนแล้วกด "เพิ่มข้อมูล"</td></tr>`;
+  } else {
+    body.innerHTML = rows.map((r,i)=>{
+      const dateMismatch = !dateMatchesSale(r.dateRaw, selDate);
+      const isDup = dupIds[r.internal] > 1;
+      const cls = isDup?'warn-dup':(dateMismatch?'warn-date':'');
+      const flags = (isDup?'<span class="flag flag-dup">ซ้ำ</span>':'')+(dateMismatch?'<span class="flag flag-date">วันไม่ตรง</span>':'');
+      return `<tr class="${cls}"><td>${esc(r.internal)}</td><td>${esc(r.iv)}</td><td>${esc(r.so)}</td><td>${esc(r.dateRaw)}${flags}</td>
+        <td>${esc(r.custCode)}</td><td>${esc(r.custName)}</td><td class="num mono-num">${fmt(r.total)}</td><td>${esc(r.status)}</td><td>${esc(r.canceled)}</td>
+        <td><button class="btn-danger-text" data-idx="${i}">ลบ</button></td></tr>`;
+    }).join('');
+    body.querySelectorAll('button[data-idx]').forEach(b=> b.onclick=()=>{ m.rows.splice(Number(b.dataset.idx),1); renderDocumentsStep(); });
+  }
+  const sum = rows.reduce((s,r)=>s+r.total,0);
+  foot.innerHTML = `<tr><td colspan="6">รวม ${rows.length} เอกสาร</td><td class="num mono-num">${fmt(sum)}</td><td colspan="3"></td></tr>`;
+}
+function addExtraChannel(){
+  const idx = state.extraChannels.length;
+  const id = 'extra_'+Date.now()+'_'+Math.floor(Math.random()*1000);
+  const cls = EXTRA_CLASS_CYCLE[idx % EXTRA_CLASS_CYCLE.length];
+  const name = (prompt('ตั้งชื่อช่องทางใหม่', 'ช่องทางใหม่') || 'ช่องทางใหม่').trim() || 'ช่องทางใหม่';
+  state.extraChannels.push({ id, name, cls, rows:[] });
+  activeChannel = id; renderDocumentsStep();
+}
+function renameExtraChannel(id){
+  const ec = state.extraChannels.find(c=>c.id===id);
+  if(!ec) return;
+  const name = prompt('เปลี่ยนชื่อช่องทาง', ec.name);
+  if(name && name.trim()){ ec.name = name.trim(); renderDocumentsStep(); }
+}
+function removeExtraChannel(id){
+  const m = getMeta(id);
+  if(m && m.rows.length>0 && !confirm('ช่องทาง "'+m.name+'" มีข้อมูล '+m.rows.length+' รายการ ต้องการลบทิ้งทั้งหมดหรือไม่?')) return;
+  state.extraChannels = state.extraChannels.filter(c=>c.id!==id);
+  if(activeChannel===id) activeChannel='Garb';
+  renderDocumentsStep();
+}
+function grandTotal(){ return allTabIds().reduce((s,id)=> s+getMeta(id).rows.reduce((a,r)=>a+r.total,0), 0); }
+function docCount(){ return allTabIds().reduce((s,id)=> s+getMeta(id).rows.length, 0); }
+function renderDocumentsStep(){
+  renderTabs();
+  const flags = renderDetective();
+  renderChannelTable();
+  document.getElementById('tickerTotal').textContent = fmt(grandTotal());
+  document.getElementById('tickerDocs').textContent = docCount();
+  document.getElementById('tickerFlags').textContent = flags;
+  const m = getMeta(activeChannel) || getMeta('Garb');
+  const clearBtn = document.getElementById('btnClearChannel');
+  clearBtn.textContent = `ล้างข้อมูลแท็บ "${m.name}"`;
+  clearBtn.disabled = m.rows.length===0;
+}
+function clearActiveChannel(){
+  const m = getMeta(activeChannel);
+  if(!m || m.rows.length===0) return;
+  if(!confirm(`ต้องการล้างข้อมูล ${m.rows.length} รายการในแท็บ "${m.name}" ทั้งหมดหรือไม่? (ทำแล้วกู้คืนไม่ได้)`)) return;
+  m.rows.length = 0; // truncate in place so the underlying state array (core or extra) is cleared too
+  renderDocumentsStep();
+}
+document.getElementById('btnClearChannel').onclick = clearActiveChannel;
+function addPastedText(text, opts){
+  opts = opts || {};
+  const rows = parsePaste(text);
+  const hintEl = document.getElementById('pasteHint');
+  if(rows.length===0){
+    if(opts.silent){ hintEl.style.display='block'; hintEl.style.color='var(--red)'; hintEl.textContent='ไม่พบข้อมูลที่อ่านได้จากสิ่งที่วาง ลองตรวจสอบว่าคัดลอกมาจาก SAP ถูกต้องหรือไม่'; }
+    else alert('ไม่พบข้อมูลที่อ่านได้ ลองตรวจสอบว่าคัดลอกมาจาก SAP ถูกต้องหรือไม่');
+    return;
+  }
+  const m = getMeta(activeChannel) || getMeta('Garb');
+  const newCodes = [...new Set(rows.map(r=>r.custCode).filter(Boolean))];
+  const lockedCode = getLockedCode(activeChannel, state.branch); // null for Cash & custom channels
+  let blockMsg = null;   // hard stop — cannot be overridden
+  let warnMsg = null;    // soft heuristic — can be confirmed through
+
+  if(lockedCode){
+    // Garb / Lineman / Lineshopping: the pasted data must be EXACTLY this code,
+    // nothing else and nothing missing. No override allowed.
+    if(newCodes.length===0){
+      blockMsg = `ไม่สามารถเพิ่มข้อมูลได้\n\nข้อมูลที่วางไม่มีรหัสลูกค้า (Customer Code) เลย แต่ช่องทาง "${m.name}" ต้องเป็นรหัส "${lockedCode}" เท่านั้น\n\nกรุณาตรวจสอบข้อมูลที่คัดลอกมาจาก SAP อีกครั้ง`;
+    } else if(newCodes.length>1 || newCodes[0]!==lockedCode){
+      const badCode = newCodes.find(c=>c!==lockedCode) || newCodes[0];
+      const owner = identifyOwnerChannel(badCode, state.branch, activeChannel);
+      blockMsg = owner
+        ? `ไม่สามารถเพิ่มข้อมูลได้\n\nพบรหัสลูกค้า "${badCode}" ซึ่งถูกล็อกไว้เป็นของช่องทาง "${owner}" ไม่ใช่ "${m.name}"\n\nช่องทาง "${m.name}" ต้องเป็นรหัส "${lockedCode}" เท่านั้น — วางผิดช่องทางแน่นอน`
+        : `ไม่สามารถเพิ่มข้อมูลได้\n\nข้อมูลที่วางมีรหัสลูกค้า "${newCodes.join(', ')}" แต่ช่องทาง "${m.name}" ต้องเป็นรหัส "${lockedCode}" เท่านั้น`;
+    }
+  } else {
+    // Cash and custom channels have no fixed code of their own, but must NEVER
+    // accept a code that's locked to Garb/Lineman/Lineshopping. No override allowed.
+    for(const code of newCodes){
+      const owner = identifyOwnerChannel(code, state.branch, activeChannel);
+      if(owner){ blockMsg = `ไม่สามารถเพิ่มข้อมูลได้\n\nรหัสลูกค้า "${code}" ถูกล็อกไว้เป็นของช่องทาง "${owner}" เท่านั้น ห้ามนำมาใส่ในแท็บ "${m.name}"`; break; }
+    }
+    // Cash has no self-consistency rule at all (1 person = 1 personal code, varies every time).
+    // Custom channels still get the old dynamic same-tab / cross-tab heuristic as a soft warning.
+    if(!blockMsg && activeChannel!=='Cash'){
+      const existingCode = dominantCustCode(m.rows);
+      if(existingCode && newCodes.length && !newCodes.includes(existingCode)){
+        warnMsg = `ข้อมูลที่วางมีรหัสลูกค้า "${newCodes.join(', ')}" แต่แท็บ "${m.name}" มีรหัส "${existingCode}" อยู่ก่อนแล้ว\n\nอาจวางผิดช่องทาง ต้องการเพิ่มข้อมูลนี้ต่อหรือไม่?`;
+      } else if(!existingCode && newCodes.length===1){
+        const otherTab = codeUsedInOtherTab(newCodes[0], activeChannel);
+        if(otherTab) warnMsg = `รหัสลูกค้า "${newCodes[0]}" ถูกใช้อยู่ในแท็บ "${otherTab}" แล้ว\n\nอาจวางผิดช่องทาง ต้องการเพิ่มข้อมูลนี้ลงแท็บ "${m.name}" ต่อหรือไม่?`;
+      }
+    }
+  }
+
+  if(blockMsg){
+    alert(blockMsg);
+    hintEl.style.display='block'; hintEl.style.color='var(--red)'; hintEl.textContent='ถูกบล็อก — รหัสลูกค้าไม่ตรงตามที่กำหนดไว้สำหรับช่องทางนี้ ไม่ได้เพิ่มข้อมูล';
+    return;
+  }
+  if(warnMsg && !confirm(warnMsg)){
+    hintEl.style.display='block'; hintEl.style.color='var(--red)'; hintEl.textContent='ยกเลิกการเพิ่มข้อมูล — ตรวจสอบช่องทางแล้วลองวางใหม่';
+    return;
+  }
+  m.rows.push(...rows);
+  document.getElementById('pasteArea').value='';
+  hintEl.style.display='block'; hintEl.style.color='var(--green-dk)';
+  hintEl.textContent = `เพิ่ม ${rows.length} รายการเข้าแท็บ "${m.name}" แล้ว`;
+  renderDocumentsStep();
+}
+document.getElementById('btnAddPaste').onclick = ()=> addPastedText(document.getElementById('pasteArea').value);
+document.getElementById('pasteArea').addEventListener('paste', ()=>{
+  setTimeout(()=>{ addPastedText(document.getElementById('pasteArea').value, {silent:true}); }, 30);
+});
+document.getElementById('toExceptions').onclick = ()=> goStep('exceptions');
+
+// ---------- exceptions step ----------
+function renderExceptions(){
+  const list = document.getElementById('excList');
+  if(state.exceptions.length===0){ list.innerHTML = `<div class="exc-empty">ไม่มีรายการผิดปกติ (จะบันทึกเป็น "ไม่มี")</div>`; return; }
+  list.innerHTML = state.exceptions.map((e,i)=>`<div class="exc-row">
+      <input type="text" placeholder="เลขที่เอกสาร" value="${esc(e.doc)}" data-f="doc" data-idx="${i}">
+      <input type="text" placeholder="รายละเอียด" value="${esc(e.detail)}" data-f="detail" data-idx="${i}">
+      <button class="btn-danger-text" data-rm="${i}">ลบ</button></div>`).join('');
+  list.querySelectorAll('input').forEach(inp=> inp.oninput = e=>{ state.exceptions[Number(e.target.dataset.idx)][e.target.dataset.f]=e.target.value; });
+  list.querySelectorAll('button[data-rm]').forEach(b=> b.onclick=()=>{ state.exceptions.splice(Number(b.dataset.rm),1); renderExceptions(); });
+}
+document.getElementById('btnAddExc').onclick = ()=>{ state.exceptions.push({doc:'',detail:''}); renderExceptions(); };
+document.getElementById('excBack').onclick = ()=> goStep('documents');
+document.getElementById('excNext').onclick = ()=> goStep('tax');
+
+// ---------- tax step ----------
+function renderTax(){
+  const list = document.getElementById('taxList');
+  document.getElementById('taxHead').style.display = state.taxInvoices.length? 'grid':'none';
+  if(state.taxInvoices.length===0){ list.innerHTML = `<div class="tax-empty">ไม่มีรายการ (จะบันทึกเป็น "ไม่มี")</div>`; return; }
+  list.innerHTML = state.taxInvoices.map((t,i)=>`<div class="tax-row">
+      <div style="padding-top:7px;">${i+1}</div>
+      <input type="date" value="${esc(t.saleDate)}" data-f="saleDate" data-idx="${i}">
+      <input type="date" value="${esc(t.issueDate)}" data-f="issueDate" data-idx="${i}">
+      <input type="text" placeholder="เลขที่ IV" value="${esc(t.iv)}" data-f="iv" data-idx="${i}">
+      <input type="text" placeholder="ชื่อบริษัทลูกค้า" value="${esc(t.custName)}" data-f="custName" data-idx="${i}">
+      <input type="number" placeholder="ยอด" value="${t.amount}" min="0" step="0.01" data-f="amount" data-idx="${i}">
+      <button class="btn-danger-text" data-rmtax="${i}">ลบ</button></div>`).join('');
+  list.querySelectorAll('input').forEach(inp=> inp.oninput = e=>{
+    const f=e.target.dataset.f, i=Number(e.target.dataset.idx);
+    state.taxInvoices[i][f] = f==='amount' ? Number(e.target.value)||0 : e.target.value;
+  });
+  list.querySelectorAll('button[data-rmtax]').forEach(b=> b.onclick=()=>{ state.taxInvoices.splice(Number(b.dataset.rmtax),1); renderTax(); });
+}
+document.getElementById('btnAddTax').onclick = ()=>{
+  state.taxInvoices.push({ saleDate: state.date||todayISO(), issueDate:'', iv:'', custName:'', amount:0, note:'' });
+  renderTax();
+};
+document.getElementById('taxBack').onclick = ()=> goStep('exceptions');
+document.getElementById('taxNext').onclick = ()=> openReviewModal();
+
+// ---------- review step ----------
+function getFlaggedItems(){
+  const dupIds = allInternalIds();
+  const items = [];
+  allTabIds().forEach(id=>{
+    const m = getMeta(id);
+    m.rows.forEach(r=>{
+      const dateMismatch = !dateMatchesSale(r.dateRaw, state.date);
+      const isDup = dupIds[r.internal] > 1;
+      if(dateMismatch || isDup){
+        const reasons = [isDup?'เอกสารซ้ำ':null, dateMismatch?'วันที่ไม่ตรงกับวันที่ขาย':null].filter(Boolean).join(' · ');
+        items.push({ channel:m.name, internal:r.internal, iv:r.iv, dateRaw:r.dateRaw, reason:reasons });
+      }
+    });
+  });
+  return items;
+}
+function renderReview(){
+  const body = document.getElementById('reviewBody');
+  let totalSO=0,totalAR=0,totalAmt=0, html='';
+  allTabIds().forEach(id=>{
+    const m = getMeta(id); const t = channelTotals(m.rows);
+    totalSO+=t.so; totalAR+=t.ar; totalAmt+=t.amount;
+    html += `<tr class="review-row" data-toggle="${id}"><td class="txt-${m.cls}" style="font-weight:700;">▸ ${esc(m.name)}</td><td>${t.so}</td><td>${t.ar}</td><td class="mono-num">${fmt(t.amount)}</td></tr>`;
+    html += `<tr class="review-detail" id="rdetail_${id}"><td colspan="4">` + (m.rows.length===0
+      ? '<div class="tax-empty">ไม่มีข้อมูล</div>'
+      : `<div style="overflow-x:auto;"><table style="font-size:12.5px;"><thead><tr><th>Internal</th><th>IV</th><th>SO</th><th>Date</th><th>ลูกค้า</th><th class="num">ยอด</th></tr></thead><tbody>`
+        + m.rows.map(r=>`<tr><td>${esc(r.internal)}</td><td>${esc(r.iv)}</td><td>${esc(r.so)}</td><td>${esc(r.dateRaw)}</td><td>${esc(r.custName)}</td><td class="num mono-num">${fmt(r.total)}</td></tr>`).join('')
+        + `</tbody></table></div>`) + `</td></tr>`;
+  });
+  body.innerHTML = html;
+  body.querySelectorAll('.review-row').forEach(tr=> tr.onclick = ()=> document.getElementById('rdetail_'+tr.dataset.toggle).classList.toggle('open'));
+  document.getElementById('reviewSumSO').textContent = totalSO;
+  document.getElementById('reviewSumAR').textContent = totalAR;
+  document.getElementById('reviewSumTotal').textContent = fmt(totalAmt);
+  document.getElementById('reviewHeroTotal').textContent = fmt(totalAmt);
+  document.getElementById('reviewHeroDocs').textContent = totalSO;
+
+  const excItems = state.exceptions.filter(e=>e.doc||e.detail);
+  const taxItems = state.taxInvoices.filter(t=>t.iv||t.custName);
+  const flagItems = getFlaggedItems();
+
+  const flagBanner = document.getElementById('reviewFlagBanner');
+  if(totalSO===0){
+    flagBanner.style.display='flex';
+    flagBanner.className = 'detective-banner detective-warn';
+    flagBanner.innerHTML = `⚠ ยังไม่มีข้อมูลเอกสารเลยแม้แต่รายการเดียว — ถ้าวันนี้ไม่มียอดขายจริงก็ส่งต่อได้ แต่ถ้าลืมใส่ข้อมูล กด "ย้อนกลับไปแก้ไข" ก่อน`;
+  } else if(flagItems.length>0){
+    flagBanner.style.display='flex';
+    flagBanner.className = 'detective-banner detective-warn';
+    flagBanner.innerHTML = `⚠ พบ ${flagItems.length} รายการที่ควรตรวจสอบก่อนส่ง (วันที่ไม่ตรง/เอกสารซ้ำ) — ดูรายละเอียดได้ด้านล่าง`;
+  } else {
+    flagBanner.style.display='flex';
+    flagBanner.className = 'detective-banner detective-ok';
+    flagBanner.textContent = '✓ ไม่พบรายการที่ต้องตรวจสอบ ข้อมูลพร้อมส่ง';
+  }
+
+  const excDetail = excItems.length===0 ? `<div class="tax-empty">ไม่มีรายการผิดปกติ</div>`
+    : `<table class="summary-table" style="margin-top:10px;"><thead><tr><th>เลขที่เอกสาร</th><th>รายละเอียด</th></tr></thead><tbody>`
+      + excItems.map(e=>`<tr><td>${esc(e.doc)}</td><td>${esc(e.detail)}</td></tr>`).join('') + `</tbody></table>`;
+
+  const taxDetail = taxItems.length===0 ? `<div class="tax-empty">ไม่มีรายการใบกำกับภาษีย้อนหลัง</div>`
+    : `<div style="overflow-x:auto;"><table class="summary-table" style="margin-top:10px;"><thead><tr><th>วันที่ขาย</th><th>วันที่ออกใบกำกับ</th><th>เลขที่ IV</th><th>ชื่อบริษัทลูกค้า</th><th>ยอด</th></tr></thead><tbody>`
+      + taxItems.map(t=>`<tr><td>${esc(t.saleDate)}</td><td>${esc(t.issueDate)}</td><td>${esc(t.iv)}</td><td>${esc(t.custName)}</td><td class="mono-num">${fmt(t.amount)}</td></tr>`).join('') + `</tbody></table></div>`;
+
+  const flagDetail = flagItems.length===0 ? `<div class="tax-empty">ไม่พบรายการที่ต้องตรวจสอบ</div>`
+    : `<table class="summary-table" style="margin-top:10px;"><thead><tr><th>ช่องทาง</th><th>Internal No.</th><th>IV No.</th><th>Posting Date</th><th>สาเหตุ</th></tr></thead><tbody>`
+      + flagItems.map(f=>`<tr><td>${esc(f.channel)}</td><td>${esc(f.internal)}</td><td>${esc(f.iv)}</td><td>${esc(f.dateRaw)}</td><td>${esc(f.reason)}</td></tr>`).join('') + `</tbody></table>`;
+
+  document.getElementById('reviewExtras').innerHTML = `
+    <details class="hist-card ${excItems.length?'hist-card-warn':''}"><summary><span>รายการผิดปกติ</span><span>${excItems.length||'ไม่มี'}</span></summary>${excDetail}</details>
+    <details class="hist-card"><summary><span>ใบกำกับภาษี</span><span>${taxItems.length||'ไม่มี'}</span></summary>${taxDetail}</details>
+    <details class="hist-card ${flagItems.length?'hist-card-warn':''}"><summary><span>รายการที่ต้องตรวจสอบ</span><span>${flagItems.length||'ไม่มี'}</span></summary>${flagDetail}</details>
+  `;
+}
+document.getElementById('reviewBack').onclick = ()=> closeReviewModal();
+
+// ---------- payload & submit ----------
+function buildPayload(){
+  const channels = {};
+  CORE_CHANNELS.forEach(ch=> channels[ch]=state.channels[ch]);
+  const usedNames = new Set(CORE_CHANNELS);
+  state.extraChannels.forEach(ec=>{
+    let name = (ec.name||'').trim() || 'อื่นๆ'; let n=2;
+    while(usedNames.has(name)){ name = (ec.name||'อื่นๆ').trim()+' ('+n+')'; n++; }
+    usedNames.add(name);
+    channels[name] = ec.rows;
+  });
+  return {
+    branch: state.branch, date: state.date, preparer: state.preparer,
+    channels,
+    exceptions: state.exceptions.length ? state.exceptions : [{doc:'', detail:'ไม่มี'}],
+    taxInvoices: state.taxInvoices.length ? state.taxInvoices : [{saleDate:'',issueDate:'',iv:'',custName:'',amount:0,note:'ไม่มี'}],
+    submittedAt: new Date().toISOString()
+  };
+}
+document.getElementById('btnCopyJson').onclick = async ()=>{
+  const json = JSON.stringify(buildPayload(), null, 2);
+  try{ await navigator.clipboard.writeText(json); flashStatus('คัดลอกข้อมูล JSON แล้ว','ok'); }
+  catch(e){ prompt('คัดลอกข้อความนี้ด้วยตนเอง:', json); }
+};
+function flashStatus(text, kind){
+  const msg = document.getElementById('statusMsg');
+  msg.textContent = text; msg.className = 'status-msg ' + (kind||'');
+}
+document.getElementById('btnFinalSubmit').onclick = async ()=>{
+  const btn = document.getElementById('btnFinalSubmit'); btn.disabled=true; btn.textContent='กำลังส่ง...';
+  const payload = buildPayload();
+  try{
+    const res = await fetch(state.webhook, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
+    let ok = res.ok;
+    try{ const j = await res.json(); ok = ok && j.status!=='error'; }catch(e){}
+    if(!ok) throw new Error('response not ok');
+    submitted = true;
+    const total = Object.values(payload.channels).reduce((s,rows)=>s+rows.reduce((a,r)=>a+r.total,0),0);
+    document.getElementById('doneMeta').textContent = `สาขา ${payload.branch} · วันที่ ${formatThaiDate(payload.date)} · ${new Date().toLocaleTimeString('th-TH')}`;
+    document.getElementById('doneAmount').textContent = fmt(total) + ' บาท';
+    resetAllData();
+    closeReviewModal();
+    goStep('done');
+  }catch(err){
+    flashStatus('ส่งไม่สำเร็จ (เช็คการเชื่อมต่อ) — กด "คัดลอกข้อมูล (JSON)" แล้วส่งให้ผู้ดูแลระบบแทนได้','err');
+    btn.disabled=false; btn.textContent='ยืนยันและส่งข้อมูลเข้า Google Sheet';
+  }
+};
+function resetAllData(){
+  state.branch=''; state.date=todayISO(); state.preparer=''; state.generalConfirmed=false;
+  state.channels={Garb:[],Lineman:[],Cash:[],Lineshopping:[]};
+  state.extraChannels=[]; state.exceptions=[]; state.taxInvoices=[];
+  activeChannel='Garb';
+  document.getElementById('fBranch').value=''; document.getElementById('fDate').value=state.date; document.getElementById('fPreparer').value='';
+  document.getElementById('pasteArea').value='';
+}
+document.getElementById('btnStartOver').onclick = ()=>{ window.location.reload(); };
+
+// ---------- history view ----------
+document.getElementById('btnToggleHistory').onclick = ()=>{
+  const hv = document.getElementById('viewHistory');
+  const showing = hv.style.display==='block';
+  document.querySelectorAll('.step').forEach(el=>el.style.display='none');
+  document.getElementById('refBar').style.display='none';
+  document.getElementById('stepNav').style.display='none';
+  if(showing){ goStep(currentStep==='general'?'general':currentStep); }
+  else{ hv.style.display='block'; document.getElementById('btnToggleHistory').textContent='กลับไปหน้ากรอกข้อมูล'; window.scrollTo({top:0,behavior:'smooth'}); }
+};
+document.getElementById('btnHistSearch').onclick = async ()=>{
+  const box = document.getElementById('histResults');
+  const btn = document.getElementById('btnHistSearch');
+  btn.disabled = true;
+  box.innerHTML = '<div class="hint">กำลังค้นหา...</div>';
+  const branch = document.getElementById('hBranch').value.trim();
+  const from = document.getElementById('hFrom').value;
+  const to = document.getElementById('hTo').value;
+  const url = state.webhook + '?action=history&branch='+encodeURIComponent(branch)+'&from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to);
+  try{
+    const res = await fetch(url);
+    const j = await res.json();
+    if(j.status==='error') throw new Error(j.message||'error');
+    renderHistory(j.rows||[]);
+  }catch(e){
+    box.innerHTML = '<div class="err-text">ค้นหาไม่สำเร็จ ลองตรวจสอบการเชื่อมต่อ</div>';
+  }
+  btn.disabled = false;
+};
+function renderHistory(rows){
+  const box = document.getElementById('histResults');
+  if(rows.length===0){ box.innerHTML = '<div class="hint">ไม่พบข้อมูลตามเงื่อนไขที่ค้นหา</div>'; return; }
+  const groups = {};
+  rows.forEach(r=>{
+    const key = r.submittedAt+'|'+r.branch+'|'+r.date;
+    if(!groups[key]) groups[key] = { submittedAt:r.submittedAt, branch:r.branch, date:r.date, preparer:r.preparer, items:[] };
+    groups[key].items.push(r);
+  });
+  const keys = Object.keys(groups).sort((a,b)=> groups[b].date.localeCompare(groups[a].date) || groups[b].submittedAt.localeCompare(groups[a].submittedAt));
+  box.innerHTML = keys.map(k=>{
+    const g = groups[k];
+    const total = g.items.filter(i=>i.channel!=='รวม').reduce((s,i)=>s+Number(i.amount||0),0);
+    const rowsHtml = g.items.map(i=>`<tr><td>${esc(i.channel)}</td><td>${i.so}</td><td>${i.ar}</td><td class="mono-num">${fmt(i.amount)}</td></tr>`).join('');
+    return `<details class="hist-card"><summary><span><b>${esc(g.branch)}</b> · ${esc(formatThaiDate(g.date))} · ผู้จัดทำ ${esc(g.preparer)}</span><span class="mono-num">${fmt(total)} บาท</span></summary>
+      <table class="summary-table" style="margin-top:10px;"><thead><tr><th>ช่องทาง</th><th>SO</th><th>AR</th><th>ยอด</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+      <div class="hint">ส่งเมื่อ ${esc(g.submittedAt)}</div></details>`;
+  }).join('');
+}
+
+// ---------- init ----------
+function updateDatePreview(){
+  document.getElementById('fDatePreview').textContent = '→ ' + formatThaiDate(document.getElementById('fDate').value);
+}
+document.getElementById('fDate').addEventListener('input', updateDatePreview);
+(function init(){
+  state.date = todayISO();
+  document.getElementById('fDate').value = state.date;
+  document.getElementById('hFrom').value = state.date;
+  document.getElementById('hTo').value = state.date;
+  document.getElementById('sheetLink').href = SHEET_URL;
+  document.getElementById('sheetLinkDone').href = SHEET_URL;
+  updateDatePreview();
+  goStep('general');
+})();
+</script>
+
+</body>
+</html>
